@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Social Anxiety VR Training</title>
+  <meta name="theme-color" content="#101418">
+  <link rel="manifest" href="./manifest.webmanifest">
+  <script src="https://aframe.io/releases/1.6.0/aframe.min.js"></script>
+  <style>
+    html,body{margin:0;height:100%;overflow:hidden;background:#101418;font-family:Inter,Arial,sans-serif;color:#fff}
+    #ui{position:fixed;inset:0;pointer-events:none;z-index:10}
+    #panel{position:absolute;left:24px;right:24px;bottom:24px;display:flex;flex-direction:column;gap:12px;align-items:flex-start}
+    #panel button,#questionBox button{pointer-events:auto;background:rgba(20,28,36,.92);color:#fff;border:1px solid rgba(255,255,255,.18);padding:12px 16px;border-radius:12px;cursor:pointer}
+    #captionBox,#questionBox{max-width:760px;background:rgba(10,14,18,.82);border:1px solid rgba(255,255,255,.14);border-radius:14px;padding:14px 16px;line-height:1.45;pointer-events:auto}
+    .hidden{display:none}
+  </style>
+</head>
+<body>
+  <div id="ui">
+    <div id="panel">
+      <button id="startBtn">Start experience</button>
+      <button id="captionToggle">Captions: On</button>
+      <div id="captionBox">Load the experience, then test in desktop and Meta Quest Browser.</div>
+      <div id="questionBox" class="hidden"></div>
+    </div>
+  </div>
+
+  <a-scene background="color: #101418" vr-mode-ui="enabled: true">
+    <a-assets>
+      <audio id="ambientAudio"></audio>
+    </a-assets>
+
+    <a-entity id="cameraRig" position="0 1.6 0">
+      <a-camera>
+        <a-cursor color="#7FDBFF"></a-cursor>
+      </a-camera>
+    </a-entity>
+
+    <a-sky id="sky" color="#1a2230"></a-sky>
+    <a-plane rotation="-90 0 0" width="14" height="14" color="#2a2f36"></a-plane>
+    <a-box id="sceneObj" position="0 1 -2.5" width="2.5" height="2" depth="1" color="#5b6470"></a-box>
+  </a-scene>
+
+  <script>
+    const experience = {
+      startScene: 'intro',
+      scenes: {
+        intro: { caption: 'Marcus arrives early for another demanding day in infrastructure investing.', color:'#223040', obj:'#7a8899', next:'meeting', duration:12000 },
+        meeting: { caption: 'In the meeting, capability is visible. The private cost of balancing roles is not.', color:'#2a2e38', obj:'#6b7280', next:'branch', duration:15000 },
+        branch: { caption: 'Are you a people manager?', color:'#101418', obj:'#44515e', question:true },
+        manager: { caption: 'Managers can reduce friction with clarity, flexibility, and predictable support.', color:'#20262d', obj:'#4b5563', next:'close', duration:12000 },
+        close: { caption: 'Support at work does not remove responsibility. It removes unnecessary friction.', color:'#101418', obj:'#374151' }
+      }
+    };
+
+    const els = {
+      startBtn: document.getElementById('startBtn'),
+      captionToggle: document.getElementById('captionToggle'),
+      captionBox: document.getElementById('captionBox'),
+      questionBox: document.getElementById('questionBox'),
+      sky: document.getElementById('sky'),
+      sceneObj: document.getElementById('sceneObj')
+    };
+
+    let current = null, timer = null, captionsOn = true;
+
+    function updateCaption(text){ els.captionBox.textContent = captionsOn ? text : ''; }
+    function go(id){
+      if (timer) clearTimeout(timer);
+      current = experience.scenes[id];
+      els.sky.setAttribute('color', current.color);
+      els.sceneObj.setAttribute('color', current.obj);
+      updateCaption(current.caption || '');
+      if (current.question){
+        els.questionBox.classList.remove('hidden');
+        els.questionBox.innerHTML = '<div style="margin-bottom:12px">Are you a people manager?</div>';
+        const yes = document.createElement('button'); yes.textContent='Yes'; yes.onclick=()=>{els.questionBox.classList.add('hidden'); go('manager');};
+        const no = document.createElement('button'); no.textContent='No'; no.style.marginLeft='8px'; no.onclick=()=>{els.questionBox.classList.add('hidden'); go('close');};
+        els.questionBox.append(yes,no);
+        return;
+      }
+      if (current.next) timer = setTimeout(()=>go(current.next), current.duration || 10000);
+    }
+
+    els.startBtn.onclick = () => { els.startBtn.style.display='none'; go(experience.startScene); };
+    els.captionToggle.onclick = () => { captionsOn = !captionsOn; els.captionToggle.textContent = `Captions: ${captionsOn ? 'On' : 'Off'}`; updateCaption(current?.caption || ''); };
+  </script>
+</body>
+</html>

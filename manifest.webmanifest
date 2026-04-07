@@ -1,0 +1,10 @@
+{
+  "name": "Social Anxiety VR Training",
+  "short_name": "Social Anxiety VR",
+  "start_url": "./social-anxiety-vr.html",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#101418",
+  "theme_color": "#101418",
+  "icons": []
+}
